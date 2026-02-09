@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Eventos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .mensaje {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Registro de Eventos</h1>
+        <p style="text-align: center; color: #666;">Ingresa tu DUI para continuar</p>
+        
+        <input type="text" id="dui" placeholder="Ejemplo: 12345678-9" maxlength="10">
+        <button onclick="verificarDUI()">Continuar</button>
+        
+        <div id="mensaje" class="mensaje"></div>
+        <div id="loading" class="loading" style="display: none;">
+            Verificando... ⏳
+        </div>
+    </div>
+
+    <script>
+        // REEMPLAZA ESTA URL CON LA URL DE TU APPS SCRIPT
+        const SCRIPT_URL = 'TU_URL_DEL_APPS_SCRIPT_AQUI';
+        
+        function verificarDUI() {
+            const dui = document.getElementById('dui').value.trim();
+            const mensaje = document.getElementById('mensaje');
+            const loading = document.getElementById('loading');
+            
+            // Validación básica
+            if (!dui) {
+                mostrarMensaje('Por favor ingresa tu DUI', 'info');
+                return;
+            }
+            
+            // Mostrar loading
+            loading.style.display = 'block';
+            mensaje.style.display = 'none';
+            
+            // Llamar al Apps Script
+            fetch(SCRIPT_URL + '?dui=' + encodeURIComponent(dui))
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    
+                    if (data.error) {
+                        mostrarMensaje('Error: ' + data.error, 'info');
+                        return;
+                    }
+                    
+                    if (data.registrado) {
+                        mostrarMensaje('¡Hola ' + data.nombre + '! Ya estás registrado. Redirigiendo al formulario de asistencia...', 'success');
+                        setTimeout(() => {
+                            window.location.href = data.urlFormulario;
+                        }, 2000);
+                    } else {
+                        mostrarMensaje('No encontramos tu registro. Redirigiendo al formulario completo...', 'info');
+                        setTimeout(() => {
+                            window.location.href = data.urlFormulario;
+                        }, 2000);
+                    }
+                })
+                .catch(error => {
+                    loading.style.display = 'none';
+                    mostrarMensaje('Error al verificar. Por favor intenta nuevamente.', 'info');
+                    console.error('Error:', error);
+                });
+        }
+        
+        function mostrarMensaje(texto, tipo) {
+            const mensaje = document.getElementById('mensaje');
+            mensaje.textContent = texto;
+            mensaje.className = 'mensaje ' + tipo;
+            mensaje.style.display = 'block';
+        }
+        
+        // Permitir enviar con Enter
+        document.getElementById('dui').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verificarDUI();
+            }
+        });
+    </script>
+</body>
+</html>
